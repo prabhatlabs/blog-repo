@@ -38,7 +38,6 @@ If we use `any`, we lose all the benefits of TypeScript. The compiler has no ide
 function identity(arg: any): any {
   return arg;
 }
-
 ```
 
 ### With Generics
@@ -53,7 +52,6 @@ function identity<T>(arg: T): T {
 // Usage:
 const myString = identity<string>("Hello Generics!");
 const myNumber = identity<number>(42);
-
 ```
 
 Notice how `T` acts as a placeholder? When we pass a string, `T` becomes `string`, ensuring that our variable `myString` is strictly typed as a string.
@@ -78,7 +76,6 @@ function UserProfile() {
 
   // ...
 }
-
 ```
 
 ## Wrapping Up

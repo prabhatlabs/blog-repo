@@ -1,0 +1,91 @@
+```mdx
+---
+slug: "mastering-typescript-generics"
+title: "Mastering TypeScript Generics: A Practical Guide"
+date: "2026-05-12"
+description: "Unlock the full potential of TypeScript by understanding and applying generics to create reusable, type-safe code."
+tags: ["TypeScript", "Web Development", "JavaScript", "Programming"]
+coverImage: "/images/blog/typescript-generics-cover.webp"
+published: true
+---
+
+TypeScript has revolutionized the way we write JavaScript by bringing static typing to the language. While basic types like `string`, `number`, and `boolean` are easy to grasp, things can get tricky when you want to build reusable components. This is where **Generics** come in.
+
+## What Are Generics?
+
+Generics provide a way to create reusable components that can work over a variety of types rather than a single one. Think of them as "variables" for types. Instead of passing data, you are passing the *shape* of the data.
+
+> **The Core Concept:** Generics allow you to write a function or a class that can adapt to the type of data it is given, maintaining strict type safety without duplicating code.
+
+---
+
+## Why Use Generics?
+
+Here is why generics are a staple in modern TypeScript codebases:
+
+*   **Type Safety:** They catch type errors at compile-time rather than runtime.
+*   **Reusability:** You can write a single function or class that works with `Users`, `Products`, or any other data structure.
+*   **IntelliSense:** Your IDE can provide accurate autocomplete suggestions because it knows the exact type being returned.
+
+## A Practical Example
+
+Let's look at a classic example: an `identity` function that returns whatever is passed into it. 
+
+### Without Generics (Using `any`)
+
+If we use `any`, we lose all the benefits of TypeScript. The compiler has no idea what type is being returned.
+
+```typescript
+function identity(arg: any): any {
+  return arg;
+}
+
+```
+
+### With Generics
+
+By introducing a generic type variable `T`, we can capture the type the user provides and use it to dictate the return type.
+
+```typescript
+function identity<T>(arg: T): T {
+  return arg;
+}
+
+// Usage:
+const myString = identity<string>("Hello Generics!");
+const myNumber = identity<number>(42);
+
+```
+
+Notice how `T` acts as a placeholder? When we pass a string, `T` becomes `string`, ensuring that our variable `myString` is strictly typed as a string.
+
+---
+
+## Generics in React
+
+If you are a React developer, you use generics all the time, sometimes without even realizing it. The `useState` hook is a perfect example:
+
+```tsx
+import { useState } from 'react';
+
+interface User {
+  name: string;
+  age: number;
+}
+
+function UserProfile() {
+  // We pass the User interface as a generic to useState
+  const [user, setUser] = useState<User null |>(null);
+
+  // ...
+}
+
+```
+
+## Wrapping Up
+
+Generics might seem intimidating at first glance, but they are incredibly powerful once you understand the syntax. They are the key to writing flexible, scalable, and bulletproof TypeScript code. Start by implementing them in your utility functions, and soon they will become second nature!
+
+```</User></T>
+
+```

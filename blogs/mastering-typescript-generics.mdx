@@ -1,4 +1,3 @@
-```mdx
 ---
 slug: "mastering-typescript-generics"
 title: "Mastering TypeScript Generics: A Practical Guide"
@@ -75,7 +74,7 @@ interface User {
 
 function UserProfile() {
   // We pass the User interface as a generic to useState
-  const [user, setUser] = useState<User null |>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   // ...
 }
@@ -85,7 +84,3 @@ function UserProfile() {
 ## Wrapping Up
 
 Generics might seem intimidating at first glance, but they are incredibly powerful once you understand the syntax. They are the key to writing flexible, scalable, and bulletproof TypeScript code. Start by implementing them in your utility functions, and soon they will become second nature!
-
-```</User></T>
-
-```

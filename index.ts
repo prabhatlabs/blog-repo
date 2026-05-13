@@ -56,9 +56,28 @@ function parseFrontmatter(content: string) {
     return metadata;
 }
 
+/**
+ * Serializes a metadata object back into a frontmatter string.
+ */
+function serializeFrontmatter(metadata: Record<string, any>) {
+    let yaml = "---\n";
+    for (const [key, value] of Object.entries(metadata)) {
+        if (Array.isArray(value)) {
+            yaml += `${key}: [${value.map((v) => `"${v}"`).join(", ")}]\n`;
+        } else if (typeof value === "string") {
+            yaml += `${key}: "${value}"\n`;
+        } else {
+            yaml += `${key}: ${value}\n`;
+        }
+    }
+    yaml += "---";
+    return yaml;
+}
+
 async function main() {
     const glob = new Glob("**/*.mdx");
     const blogs = [];
+    const blogContents: Record<string, string> = {};
 
     console.log(`Scanning for MDX files in ${BLOGS_DIR}...`);
 
@@ -72,6 +91,7 @@ async function main() {
         const metadata = parseFrontmatter(content);
         if (metadata) {
             blogs.push(metadata);
+            blogContents[metadata.slug] = content;
         } else {
             console.warn(`Warning: Could not find frontmatter in ${file}`);
         }
@@ -112,10 +132,26 @@ async function main() {
         blog.related = related;
     }
 
-    // Update individual meta.json files and the global index
+    // Update individual meta.json files, MDX files, and the global index
     for (const blog of blogs) {
-        const metaPath = path.join(BLOGS_DIR, blog.slug, "meta.json");
+        const slug = blog.slug;
+        const blogDir = path.join(BLOGS_DIR, slug);
+
+        // Update meta.json
+        const metaPath = path.join(blogDir, "meta.json");
         await writeFile(metaPath, JSON.stringify(blog, null, 4));
+
+        // Update blog.mdx frontmatter
+        const mdxPath = path.join(blogDir, "blog.mdx");
+        const originalContent = blogContents[slug];
+        if (originalContent) {
+            const newFrontmatter = serializeFrontmatter(blog);
+            const updatedContent = originalContent.replace(
+                /^---\r?\n[\s\S]*?\r?\n---/,
+                newFrontmatter,
+            );
+            await writeFile(mdxPath, updatedContent);
+        }
     }
 
     const indexData = {

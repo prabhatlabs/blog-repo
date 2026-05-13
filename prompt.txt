@@ -1,0 +1,1 @@
+fix the grammer here, change the format to mdx add meta slug, title, date, description, tags, coverImage, published. keep the natural narration type style it has, showing that it's actually me how is taking / explaining.

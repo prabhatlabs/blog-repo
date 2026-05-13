@@ -4,7 +4,7 @@
     "date": "2026-05-12",
     "description": "Unlock the full potential of TypeScript by understanding and applying generics to create reusable, type-safe code.",
     "tags": ["TypeScript", "Web Development", "JavaScript", "Programming"],
-    "coverImage": "/images/mastering-typescript-generics/image3.jpg",
+    "coverImage": "/blog-images/mastering-typescript-generics/image3.jpg",
     "published": true,
     "related": ["getting-started-with-mdx"]
 }

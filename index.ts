@@ -11,76 +11,77 @@ const INDEX_FILE = "./data/blog-index.json";
  */
 async function uploadImages() {
     const cloudinaryUrl = process.env.CLOUDINARY_URL;
-    let uploads: Record<string, string> = {};
+    if (!cloudinaryUrl) {
+        throw new Error("CLOUDINARY_URL not found. Skipping image uploads.");
+    }
 
-    if (cloudinaryUrl) {
-        // Parse cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+    let uploads: Record<string, string> = {};
+    try {
         const urlMatch = cloudinaryUrl.match(
             /cloudinary:\/\/([^:]+):([^@]+)@(.+)/,
         );
-        if (urlMatch) {
-            const [, apiKey, apiSecret, cloudName] = urlMatch;
-            const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-
-            const glob = new Glob("**/*.{jpg,jpeg,png,webp,gif,svg}");
-
-            for await (const file of glob.scan({
-                cwd: IMAGES_DIR,
-                onlyFiles: true,
-            })) {
-                const localPath = path.join(IMAGES_DIR, file);
-                const folder = `blog-images/${path.dirname(file).replace(/\\/g, "/")}`;
-                const publicId = path.basename(file, path.extname(file));
-
-                console.log(`Uploading ${file} to Cloudinary...`);
-
-                try {
-                    const timestamp = Math.round(new Date().getTime() / 1000);
-                    const signatureStr = `folder=${folder}&overwrite=true&public_id=${publicId}&timestamp=${timestamp}&use_filename=true${apiSecret}`;
-
-                    const signature = new Bun.CryptoHasher("sha1")
-                        .update(signatureStr)
-                        .digest("hex");
-
-                    const formData = new FormData();
-                    formData.append("file", Bun.file(localPath));
-                    formData.append("api_key", apiKey!);
-                    formData.append("timestamp", timestamp.toString());
-                    formData.append("signature", signature);
-                    formData.append("folder", folder);
-                    formData.append("public_id", publicId);
-                    formData.append("overwrite", "true");
-                    formData.append("use_filename", "true");
-
-                    const response = await fetch(uploadUrl, {
-                        method: "POST",
-                        body: formData,
-                    });
-
-                    const result = (await response.json()) as any;
-
-                    if (result.secure_url) {
-                        uploads[localPath] = result.secure_url;
-                        console.log(
-                            `Successfully uploaded ${file} -> ${result.secure_url}`,
-                        );
-                        await unlink(localPath);
-                        console.log(`Deleted local file: ${localPath}`);
-                    } else {
-                        console.error(
-                            `Upload failed for ${file}:`,
-                            result.error?.message || result,
-                        );
-                    }
-                } catch (error) {
-                    console.error(`Failed to upload ${file}:`, error);
-                }
-            }
-        } else {
-            console.error("Invalid CLOUDINARY_URL format.");
+        if (!urlMatch) {
+            throw new Error("Invalid CLOUDINARY_URL. Skipping image uploads.");
         }
-    } else {
-        console.warn("CLOUDINARY_URL not found. Skipping image uploads.");
+
+        const [, apiKey, apiSecret, cloudName] = urlMatch;
+        const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+        const glob = new Glob("**/*.{jpg,jpeg,png,webp,gif,svg}");
+
+        for await (const file of glob.scan({
+            cwd: IMAGES_DIR,
+            onlyFiles: true,
+        })) {
+            const localPath = path.join(IMAGES_DIR, file);
+            const folder = `blog-images/${path.dirname(file).replace(/\\/g, "/")}`;
+            const publicId = path.basename(file, path.extname(file));
+
+            console.log(`Uploading ${file} to Cloudinary...`);
+
+            try {
+                const timestamp = Math.round(new Date().getTime() / 1000);
+                const signatureStr = `folder=${folder}&overwrite=true&public_id=${publicId}&timestamp=${timestamp}&use_filename=true${apiSecret}`;
+
+                const signature = new Bun.CryptoHasher("sha1")
+                    .update(signatureStr)
+                    .digest("hex");
+
+                const formData = new FormData();
+                formData.append("file", Bun.file(localPath));
+                formData.append("api_key", apiKey!);
+                formData.append("timestamp", timestamp.toString());
+                formData.append("signature", signature);
+                formData.append("folder", folder);
+                formData.append("public_id", publicId);
+                formData.append("overwrite", "true");
+                formData.append("use_filename", "true");
+
+                const response = await fetch(uploadUrl, {
+                    method: "POST",
+                    body: formData,
+                });
+
+                const result = (await response.json()) as any;
+
+                if (result.secure_url) {
+                    uploads[localPath] = result.secure_url;
+                    console.log(
+                        `Successfully uploaded ${file} -> ${result.secure_url}`,
+                    );
+                    await unlink(localPath);
+                    console.log(`Deleted local file: ${localPath}`);
+                } else {
+                    console.error(
+                        `Upload failed for ${file}:`,
+                        result.error?.message || result,
+                    );
+                }
+            } catch (error) {
+                console.error(`Failed to upload ${file}:`, error);
+            }
+        }
+    } catch (e) {
+        console.warn(`Failed to upload image:`, e);
     }
 
     // Thorough cleanup: Delete everything inside IMAGES_DIR (subfolders and any remaining files)

@@ -80,24 +80,24 @@ async function uploadImages() {
                 console.error(`Failed to upload ${file}:`, error);
             }
         }
+
+        // Thorough cleanup: Delete everything inside IMAGES_DIR (subfolders and any remaining files)
+        // We set onlyFiles: false to ensure we catch directories
+        const cleanupGlob = new Glob("*");
+        for await (const entry of cleanupGlob.scan({
+            cwd: IMAGES_DIR,
+            onlyFiles: false,
+        })) {
+            const entryPath = path.join(IMAGES_DIR, entry);
+            try {
+                await rm(entryPath, { recursive: true, force: true });
+                console.log(`Cleaned up: ${entryPath}`);
+            } catch (e) {
+                console.warn(`Failed to cleanup ${entryPath}:`, e);
+            }
+        }
     } catch (e) {
         console.warn(`Failed to upload image:`, e);
-    }
-
-    // Thorough cleanup: Delete everything inside IMAGES_DIR (subfolders and any remaining files)
-    // We set onlyFiles: false to ensure we catch directories
-    const cleanupGlob = new Glob("*");
-    for await (const entry of cleanupGlob.scan({
-        cwd: IMAGES_DIR,
-        onlyFiles: false,
-    })) {
-        const entryPath = path.join(IMAGES_DIR, entry);
-        try {
-            await rm(entryPath, { recursive: true, force: true });
-            console.log(`Cleaned up: ${entryPath}`);
-        } catch (e) {
-            console.warn(`Failed to cleanup ${entryPath}:`, e);
-        }
     }
 
     return uploads;

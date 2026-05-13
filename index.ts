@@ -1,5 +1,5 @@
 import { Glob } from "bun";
-import { writeFile, readFile, unlink, rm } from "node:fs/promises";
+import { readFile, rm, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const BLOGS_DIR = "./blogs";
@@ -15,14 +15,19 @@ async function uploadImages() {
 
     if (cloudinaryUrl) {
         // Parse cloudinary://API_KEY:API_SECRET@CLOUD_NAME
-        const urlMatch = cloudinaryUrl.match(/cloudinary:\/\/([^:]+):([^@]+)@(.+)/);
+        const urlMatch = cloudinaryUrl.match(
+            /cloudinary:\/\/([^:]+):([^@]+)@(.+)/,
+        );
         if (urlMatch) {
             const [, apiKey, apiSecret, cloudName] = urlMatch;
             const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
             const glob = new Glob("**/*.{jpg,jpeg,png,webp,gif,svg}");
 
-            for await (const file of glob.scan({ cwd: IMAGES_DIR, onlyFiles: true })) {
+            for await (const file of glob.scan({
+                cwd: IMAGES_DIR,
+                onlyFiles: true,
+            })) {
                 const localPath = path.join(IMAGES_DIR, file);
                 const folder = `blog-images/${path.dirname(file).replace(/\\/g, "/")}`;
                 const publicId = path.basename(file, path.extname(file));
@@ -32,8 +37,10 @@ async function uploadImages() {
                 try {
                     const timestamp = Math.round(new Date().getTime() / 1000);
                     const signatureStr = `folder=${folder}&overwrite=true&public_id=${publicId}&timestamp=${timestamp}&use_filename=true${apiSecret}`;
-                    
-                    const signature = new Bun.CryptoHasher("sha1").update(signatureStr).digest("hex");
+
+                    const signature = new Bun.CryptoHasher("sha1")
+                        .update(signatureStr)
+                        .digest("hex");
 
                     const formData = new FormData();
                     formData.append("file", Bun.file(localPath));
@@ -54,11 +61,16 @@ async function uploadImages() {
 
                     if (result.secure_url) {
                         uploads[localPath] = result.secure_url;
-                        console.log(`Successfully uploaded ${file} -> ${result.secure_url}`);
+                        console.log(
+                            `Successfully uploaded ${file} -> ${result.secure_url}`,
+                        );
                         await unlink(localPath);
                         console.log(`Deleted local file: ${localPath}`);
                     } else {
-                        console.error(`Upload failed for ${file}:`, result.error?.message || result);
+                        console.error(
+                            `Upload failed for ${file}:`,
+                            result.error?.message || result,
+                        );
                     }
                 } catch (error) {
                     console.error(`Failed to upload ${file}:`, error);
@@ -74,7 +86,10 @@ async function uploadImages() {
     // Thorough cleanup: Delete everything inside IMAGES_DIR (subfolders and any remaining files)
     // We set onlyFiles: false to ensure we catch directories
     const cleanupGlob = new Glob("*");
-    for await (const entry of cleanupGlob.scan({ cwd: IMAGES_DIR, onlyFiles: false })) {
+    for await (const entry of cleanupGlob.scan({
+        cwd: IMAGES_DIR,
+        onlyFiles: false,
+    })) {
         const entryPath = path.join(IMAGES_DIR, entry);
         try {
             await rm(entryPath, { recursive: true, force: true });
@@ -215,22 +230,12 @@ async function main() {
     }
 
     // Upload images and delete local copies
-    const imageUrlMap = await uploadImages();
+    await uploadImages();
 
     // Update individual meta.json files, MDX files, and the global index with new URLs
     for (const blog of blogs) {
         const slug = blog.slug;
         const blogDir = path.join(BLOGS_DIR, slug);
-
-        // Replace image paths in metadata (e.g., coverImage)
-        for (const [key, value] of Object.entries(blog)) {
-            if (typeof value === "string" && value.startsWith("/blog-images/")) {
-                const localPath = "." + value;
-                if (imageUrlMap[localPath]) {
-                    (blog as any)[key] = imageUrlMap[localPath];
-                }
-            }
-        }
 
         // Update meta.json
         const metaPath = path.join(blogDir, "meta.json");
@@ -239,20 +244,13 @@ async function main() {
         // Update blog.mdx frontmatter and body content
         const mdxPath = path.join(blogDir, "blog.mdx");
         let content = blogContents[slug];
-        if (content) {
-            // Replace images in the body
-            for (const [localPath, cloudinaryUrl] of Object.entries(imageUrlMap)) {
-                const webPath = localPath.substring(1); // Remove leading '.' to match '/blog-images/...'
-                content = content.split(webPath).join(cloudinaryUrl);
-            }
-
-            const newFrontmatter = serializeFrontmatter(blog);
-            const updatedContent = content.replace(
-                /^---\r?\n[\s\S]*?\r?\n---/,
-                newFrontmatter,
-            );
-            await writeFile(mdxPath, updatedContent);
-        }
+        if (!content) continue;
+        const newFrontmatter = serializeFrontmatter(blog);
+        const updatedContent = content.replace(
+            /^---\r?\n[\s\S]*?\r?\n---/,
+            newFrontmatter,
+        );
+        await writeFile(mdxPath, updatedContent);
     }
 
     const indexData = {

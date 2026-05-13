@@ -11,71 +11,70 @@ const INDEX_FILE = "./data/blog-index.json";
  */
 async function uploadImages() {
     const cloudinaryUrl = process.env.CLOUDINARY_URL;
-    if (!cloudinaryUrl) {
-        console.warn("CLOUDINARY_URL not found. Skipping image uploads.");
-        return {};
-    }
+    let uploads: Record<string, string> = {};
 
-    // Parse cloudinary://API_KEY:API_SECRET@CLOUD_NAME
-    const urlMatch = cloudinaryUrl.match(/cloudinary:\/\/([^:]+):([^@]+)@(.+)/);
-    if (!urlMatch) {
-        console.error("Invalid CLOUDINARY_URL format.");
-        return {};
-    }
+    if (cloudinaryUrl) {
+        // Parse cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+        const urlMatch = cloudinaryUrl.match(/cloudinary:\/\/([^:]+):([^@]+)@(.+)/);
+        if (urlMatch) {
+            const [, apiKey, apiSecret, cloudName] = urlMatch;
+            const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
-    const [, apiKey, apiSecret, cloudName] = urlMatch;
-    const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+            const glob = new Glob("**/*.{jpg,jpeg,png,webp,gif,svg}");
 
-    const glob = new Glob("**/*.{jpg,jpeg,png,webp,gif,svg}");
-    const uploads: Record<string, string> = {};
+            for await (const file of glob.scan({ cwd: IMAGES_DIR, onlyFiles: true })) {
+                const localPath = path.join(IMAGES_DIR, file);
+                const folder = `blog-images/${path.dirname(file).replace(/\\/g, "/")}`;
+                const publicId = path.basename(file, path.extname(file));
 
-    for await (const file of glob.scan({ cwd: IMAGES_DIR, onlyFiles: true })) {
-        const localPath = path.join(IMAGES_DIR, file);
-        const folder = `blog-images/${path.dirname(file).replace(/\\/g, "/")}`;
-        const publicId = path.basename(file, path.extname(file));
+                console.log(`Uploading ${file} to Cloudinary...`);
 
-        console.log(`Uploading ${file} to Cloudinary...`);
+                try {
+                    const timestamp = Math.round(new Date().getTime() / 1000);
+                    const signatureStr = `folder=${folder}&overwrite=true&public_id=${publicId}&timestamp=${timestamp}&use_filename=true${apiSecret}`;
+                    
+                    const signature = new Bun.CryptoHasher("sha1").update(signatureStr).digest("hex");
 
-        try {
-            const timestamp = Math.round(new Date().getTime() / 1000);
-            const signatureStr = `folder=${folder}&overwrite=true&public_id=${publicId}&timestamp=${timestamp}&use_filename=true${apiSecret}`;
-            
-            // Bun has built-in SHA-1/SHA-256, but Cloudinary uses SHA-1 for signatures
-            const signature = new Bun.CryptoHasher("sha1").update(signatureStr).digest("hex");
+                    const formData = new FormData();
+                    formData.append("file", Bun.file(localPath));
+                    formData.append("api_key", apiKey!);
+                    formData.append("timestamp", timestamp.toString());
+                    formData.append("signature", signature);
+                    formData.append("folder", folder);
+                    formData.append("public_id", publicId);
+                    formData.append("overwrite", "true");
+                    formData.append("use_filename", "true");
 
-            const formData = new FormData();
-            formData.append("file", Bun.file(localPath));
-            formData.append("api_key", apiKey!);
-            formData.append("timestamp", timestamp.toString());
-            formData.append("signature", signature);
-            formData.append("folder", folder);
-            formData.append("public_id", publicId);
-            formData.append("overwrite", "true");
-            formData.append("use_filename", "true");
+                    const response = await fetch(uploadUrl, {
+                        method: "POST",
+                        body: formData,
+                    });
 
-            const response = await fetch(uploadUrl, {
-                method: "POST",
-                body: formData,
-            });
+                    const result = (await response.json()) as any;
 
-            const result = (await response.json()) as any;
-
-            if (result.secure_url) {
-                uploads[localPath] = result.secure_url;
-                console.log(`Successfully uploaded ${file} -> ${result.secure_url}`);
-                await unlink(localPath);
-                console.log(`Deleted local file: ${localPath}`);
-            } else {
-                console.error(`Upload failed for ${file}:`, result.error?.message || result);
+                    if (result.secure_url) {
+                        uploads[localPath] = result.secure_url;
+                        console.log(`Successfully uploaded ${file} -> ${result.secure_url}`);
+                        await unlink(localPath);
+                        console.log(`Deleted local file: ${localPath}`);
+                    } else {
+                        console.error(`Upload failed for ${file}:`, result.error?.message || result);
+                    }
+                } catch (error) {
+                    console.error(`Failed to upload ${file}:`, error);
+                }
             }
-        } catch (error) {
-            console.error(`Failed to upload ${file}:`, error);
+        } else {
+            console.error("Invalid CLOUDINARY_URL format.");
         }
+    } else {
+        console.warn("CLOUDINARY_URL not found. Skipping image uploads.");
     }
 
     // Thorough cleanup: Delete everything inside IMAGES_DIR (subfolders and any remaining files)
+    // We set onlyFiles: false to ensure we catch directories
     const cleanupGlob = new Glob("*");
-    for await (const entry of cleanupGlob.scan({ cwd: IMAGES_DIR })) {
+    for await (const entry of cleanupGlob.scan({ cwd: IMAGES_DIR, onlyFiles: false })) {
         const entryPath = path.join(IMAGES_DIR, entry);
         try {
             await rm(entryPath, { recursive: true, force: true });

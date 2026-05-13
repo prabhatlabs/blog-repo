@@ -1,0 +1,33 @@
+{
+    "lastUpdated": "2026-05-13T04:45:07.042Z",
+    "blogs": [
+        {
+            "slug": "mastering-typescript-generics",
+            "title": "Mastering TypeScript Generics: A Practical Guide",
+            "date": "2026-05-12",
+            "description": "Unlock the full potential of TypeScript by understanding and applying generics to create reusable, type-safe code.",
+            "tags": [
+                "TypeScript",
+                "Web Development",
+                "JavaScript",
+                "Programming"
+            ],
+            "coverImage": "/images/blog/typescript-generics-cover.webp",
+            "published": true
+        },
+        {
+            "slug": "getting-started-with-mdx",
+            "title": "Getting Started with MDX in Modern Web Development",
+            "date": "2026-05-11",
+            "description": "Learn how to combine the readability of Markdown with the expressive power of React components using MDX.",
+            "tags": [
+                "MDX",
+                "React",
+                "Web Development",
+                "Markdown"
+            ],
+            "coverImage": "/images/blog/getting-started-mdx-cover.webp",
+            "published": true
+        }
+    ]
+}

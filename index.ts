@@ -1,5 +1,5 @@
 import { Glob } from "bun";
-import { writeFile, readFile, unlink } from "node:fs/promises";
+import { writeFile, readFile, unlink, rm } from "node:fs/promises";
 import path from "node:path";
 
 const BLOGS_DIR = "./blogs";
@@ -72,6 +72,19 @@ async function uploadImages() {
             console.error(`Failed to upload ${file}:`, error);
         }
     }
+
+    // Thorough cleanup: Delete everything inside IMAGES_DIR (subfolders and any remaining files)
+    const cleanupGlob = new Glob("*");
+    for await (const entry of cleanupGlob.scan({ cwd: IMAGES_DIR })) {
+        const entryPath = path.join(IMAGES_DIR, entry);
+        try {
+            await rm(entryPath, { recursive: true, force: true });
+            console.log(`Cleaned up: ${entryPath}`);
+        } catch (e) {
+            console.warn(`Failed to cleanup ${entryPath}:`, e);
+        }
+    }
+
     return uploads;
 }
 

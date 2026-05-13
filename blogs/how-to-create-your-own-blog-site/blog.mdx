@@ -11,8 +11,6 @@ related: []
 
 This is how i did it — might not be the best way!
 
-![cover image](/blog-images/how-to-create-your-own-blog-site/cover.webp)
-
 ## Part 1 — Setting Up the Content Pipeline
 
 Start by creating a public/private repo on GitHub. Then init a Bun workspace and put all your MDX-based blog content in one place — something like `/blogs/[slug]/blog.mdx`. Throw all your images into an `/images` folder alongside it.
@@ -34,6 +32,8 @@ It tells the workflow to skip running when it sees that tag in a commit message.
 When we process the files and generate related posts, I'm writing those back into each MDX file's frontmatter as well.
 
 ---
+
+![cover image](/blog-images/how-to-create-your-own-blog-site/diagram.webp)
 
 ## Part 2 — Rendering on Your Site
 

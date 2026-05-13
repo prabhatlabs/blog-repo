@@ -1,0 +1,17 @@
+{
+    "slug": "getting-started-with-mdx",
+    "title": "Getting Started with MDX in Modern Web Development",
+    "date": "2026-05-11",
+    "description": "Learn how to combine the readability of Markdown with the expressive power of React components using MDX.",
+    "tags": [
+        "MDX",
+        "React",
+        "Web Development",
+        "Markdown"
+    ],
+    "coverImage": "/images/blog/getting-started-mdx-cover.webp",
+    "published": true,
+    "related": [
+        "mastering-typescript-generics"
+    ]
+}

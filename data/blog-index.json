@@ -1,5 +1,5 @@
 {
-    "lastUpdated": "2026-05-13T04:45:07.042Z",
+    "lastUpdated": "2026-05-13T04:59:39.794Z",
     "blogs": [
         {
             "slug": "mastering-typescript-generics",
@@ -13,7 +13,10 @@
                 "Programming"
             ],
             "coverImage": "/images/blog/typescript-generics-cover.webp",
-            "published": true
+            "published": true,
+            "related": [
+                "getting-started-with-mdx"
+            ]
         },
         {
             "slug": "getting-started-with-mdx",
@@ -27,7 +30,10 @@
                 "Markdown"
             ],
             "coverImage": "/images/blog/getting-started-mdx-cover.webp",
-            "published": true
+            "published": true,
+            "related": [
+                "mastering-typescript-generics"
+            ]
         }
     ]
 }

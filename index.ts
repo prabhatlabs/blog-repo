@@ -57,12 +57,15 @@ function parseFrontmatter(content: string) {
 }
 
 async function main() {
-    const glob = new Glob("*.mdx");
+    const glob = new Glob("**/*.mdx");
     const blogs = [];
 
     console.log(`Scanning for MDX files in ${BLOGS_DIR}...`);
 
-    for await (const file of glob.scan(BLOGS_DIR)) {
+    for await (const file of glob.scan({
+        cwd: BLOGS_DIR,
+        onlyFiles: true,
+    })) {
         const filePath = path.join(BLOGS_DIR, file);
         const content = await readFile(filePath, "utf-8");
 
@@ -74,12 +77,46 @@ async function main() {
         }
     }
 
-    // newest first
+    // Sort by date descending (newest first)
     blogs.sort((a, b) => {
         const dateA = new Date(a.date).getTime();
         const dateB = new Date(b.date).getTime();
         return dateB - dateA;
     });
+
+    // Add related posts based on tag overlap and recency
+    for (const blog of blogs) {
+        const related = blogs
+            .filter((other) => other.slug !== blog.slug)
+            .map((other) => {
+                const overlap = (blog.tags || []).filter((tag: string) =>
+                    (other.tags || []).includes(tag),
+                ).length;
+                return {
+                    slug: other.slug,
+                    score: overlap,
+                    date: new Date(other.date).getTime(),
+                };
+            })
+            // Only keep those with at least one matching tag
+            .filter((item) => item.score > 0)
+            .sort((a, b) => {
+                // Primary sort: match score (descending)
+                if (b.score !== a.score) return b.score - a.score;
+                // Secondary sort: date (descending)
+                return b.date - a.date;
+            })
+            .slice(0, 3)
+            .map((item) => item.slug);
+
+        blog.related = related;
+    }
+
+    // Update individual meta.json files and the global index
+    for (const blog of blogs) {
+        const metaPath = path.join(BLOGS_DIR, blog.slug, "meta.json");
+        await writeFile(metaPath, JSON.stringify(blog, null, 4));
+    }
 
     const indexData = {
         lastUpdated: new Date().toISOString(),

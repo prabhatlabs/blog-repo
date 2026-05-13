@@ -1,0 +1,17 @@
+{
+    "slug": "mastering-typescript-generics",
+    "title": "Mastering TypeScript Generics: A Practical Guide",
+    "date": "2026-05-12",
+    "description": "Unlock the full potential of TypeScript by understanding and applying generics to create reusable, type-safe code.",
+    "tags": [
+        "TypeScript",
+        "Web Development",
+        "JavaScript",
+        "Programming"
+    ],
+    "coverImage": "/images/blog/typescript-generics-cover.webp",
+    "published": true,
+    "related": [
+        "getting-started-with-mdx"
+    ]
+}

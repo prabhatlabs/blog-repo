@@ -1,10 +1,43 @@
 import { Glob } from "bun";
-import { readFile, rm, unlink, writeFile } from "node:fs/promises";
+import { readFile, rm, unlink, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
+import sharp from "sharp"; // Import sharp
 
 const BLOGS_DIR = "./blogs";
 const IMAGES_DIR = "./blog-images";
 const INDEX_FILE = "./data/blog-index.json";
+
+/**
+ * Generates a WebP cover image with the given text and saves it to the specified slug path.
+ */
+async function generateCoverImage(text: string, slug: string): Promise<string> {
+    const width = 640;
+    const height = 360;
+    const outputPath = path.join(IMAGES_DIR, slug, "cover.webp");
+    const outputDir = path.dirname(outputPath);
+
+    // Ensure directory exists, clean up old one if present
+    await rm(outputDir, { recursive: true, force: true }).catch(() => {});
+    await mkdir(outputDir, { recursive: true });
+
+    // Create SVG for text rendering
+    const svgText = `
+        <svg width="${width}" height="${height}">
+            <rect x="0" y="0" width="${width}" height="${height}" fill="#FFFFFF"/>
+            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#000000" font-family="Arial, sans-serif" font-size="48">
+                ${text}
+            </text>
+        </svg>
+    `;
+
+    await sharp(Buffer.from(svgText))
+        .resize(width, height)
+        .webp()
+        .toFile(outputPath);
+
+    console.log(`Generated cover image for "${text}" at ${outputPath}`);
+    return `/${outputPath}`;
+}
 
 /**
  * Uploads local images to Cloudinary using direct API calls (no SDK).
@@ -173,6 +206,9 @@ function serializeFrontmatter(metadata: Record<string, any>) {
 }
 
 async function main() {
+    // Ensure the base images directory exists
+    await mkdir(IMAGES_DIR, { recursive: true });
+
     const glob = new Glob("**/*.mdx");
     const blogs = [];
     const blogContents: Record<string, string> = {};
@@ -188,6 +224,14 @@ async function main() {
 
         const metadata = parseFrontmatter(content);
         if (metadata) {
+            // Generate cover image if not provided
+            if (!metadata.coverImage && metadata.title && metadata.slug) {
+                const generatedImagePath = await generateCoverImage(
+                    metadata.title,
+                    metadata.slug,
+                );
+                metadata.coverImage = generatedImagePath.replace(/\\/g, "/"); // Store relative path for Cloudinary
+            }
             blogs.push(metadata);
             blogContents[metadata.slug] = content;
         } else {

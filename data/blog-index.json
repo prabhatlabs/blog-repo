@@ -1,5 +1,5 @@
 {
-    "lastUpdated": "2026-05-13T16:55:52.607Z",
+    "lastUpdated": "2026-05-14T05:14:09.329Z",
     "blogs": [
         {
             "slug": "mastering-typescript-generics",
@@ -48,9 +48,9 @@
                 "github-actions",
                 "cloudinary"
             ],
-            "coverImage": "/blog-images/how-to-create-your-own-blog-site/cover.webp",
             "published": true,
-            "related": []
+            "related": [],
+            "coverImage": "/blog-images/how-to-create-your-own-blog-site/cover.webp"
         }
     ]
 }

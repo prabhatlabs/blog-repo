@@ -11,7 +11,7 @@
         "github-actions",
         "cloudinary"
     ],
-    "coverImage": "/blog-images/how-to-create-your-own-blog-site/cover.webp",
     "published": true,
-    "related": []
+    "related": [],
+    "coverImage": "/blog-images/how-to-create-your-own-blog-site/cover.webp"
 }

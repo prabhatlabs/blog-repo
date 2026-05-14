@@ -2,11 +2,15 @@
   "name": "blog-repo",
   "module": "index.ts",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/sharp": "^0.32.0"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "private": true,
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "sharp": "^0.34.5"
+  }
 }

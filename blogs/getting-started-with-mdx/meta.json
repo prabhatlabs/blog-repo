@@ -9,9 +9,9 @@
         "Web Development",
         "Markdown"
     ],
-    "coverImage": "/blog-images/getting-started-with-mdx/image1.jpg",
     "published": true,
     "related": [
         "mastering-typescript-generics"
-    ]
+    ],
+    "coverImage": "/blog-images/getting-started-with-mdx/cover.webp"
 }

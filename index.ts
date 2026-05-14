@@ -7,12 +7,41 @@ const BLOGS_DIR = "./blogs";
 const IMAGES_DIR = "./blog-images";
 const INDEX_FILE = "./data/blog-index.json";
 
+// Helper function to wrap text for SVG
+function wrapText(text: string, maxWidth: number, fontSize: number): string[] {
+    const words = text.split(" ");
+    let lines: string[] = [];
+    let currentLine = "";
+
+    // Estimate average character width (this is a rough heuristic, true width depends on font and character)
+    // For Arial 44px, roughly 0.6em width per char.
+    const avgCharWidth = fontSize * 0.6; // Approximation
+    const maxCharsPerLine = Math.floor(maxWidth / avgCharWidth);
+
+    for (const word of words) {
+        if ((currentLine + word).length <= maxCharsPerLine) {
+            currentLine += (currentLine === "" ? "" : " ") + word;
+        } else {
+            lines.push(currentLine.trim());
+            currentLine = word;
+        }
+    }
+    lines.push(currentLine.trim());
+    return lines.filter((line) => line.length > 0);
+}
+
 /**
  * Generates a WebP cover image with the given text and saves it to the specified slug path.
  */
 async function generateCoverImage(text: string, slug: string): Promise<string> {
     const width = 640;
     const height = 360;
+    const padding = 20;
+    const mainFontSize = 44;
+    const footerFontSize = 14;
+    const footerText = "prabhatlabs.dev";
+    const lineHeight = mainFontSize * 1.2; // 1.2em line height
+
     const outputPath = path.join(IMAGES_DIR, slug, "cover.webp");
     const outputDir = path.dirname(outputPath);
 
@@ -20,17 +49,41 @@ async function generateCoverImage(text: string, slug: string): Promise<string> {
     await rm(outputDir, { recursive: true, force: true }).catch(() => {});
     await mkdir(outputDir, { recursive: true });
 
+    const availableWidth = width - 2 * padding;
+    const wrappedLines = wrapText(text, availableWidth, mainFontSize);
+
+    const totalTextHeight = wrappedLines.length * lineHeight;
+
+    // Calculate initial Y to center the block of text, taking into account the footer
+    const mainTextTotalSpace = totalTextHeight + footerFontSize + padding / 2;
+    const mainTextStartingY =
+        (height - mainTextTotalSpace) / 2 + lineHeight / 2;
+
+    let tspanElements = wrappedLines
+        .map((line, index) => {
+            // dy is relative to the previous position, so for the first line it should be 0 or currentY
+            // We set initial y on the main <text> element, then use dy for subsequent lines
+            const dy = index === 0 ? 0 : lineHeight;
+            return `<tspan x="50%" dy="${dy}">${line}</tspan>`;
+        })
+        .join("");
+
     // Create SVG for text rendering
-    const svgText = `
-        <svg width="${width}" height="${height}">
+    const svgContent = `
+        <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
             <rect x="0" y="0" width="${width}" height="${height}" fill="#FFFFFF"/>
-            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#000000" font-family="Arial, sans-serif" font-size="48">
-                ${text}
+
+            <text x="50%" y="${mainTextStartingY}" dominant-baseline="middle" text-anchor="middle" fill="#000000" font-family="Arial, sans-serif" font-size="${mainFontSize}">
+                ${tspanElements}
+            </text>
+
+            <text x="50%" y="${height - padding}" dominant-baseline="auto" text-anchor="middle" fill="#666666" font-family="Arial, sans-serif" font-size="${footerFontSize}">
+                ${footerText}
             </text>
         </svg>
     `;
 
-    await sharp(Buffer.from(svgText))
+    await sharp(Buffer.from(svgContent))
         .resize(width, height)
         .webp()
         .toFile(outputPath);

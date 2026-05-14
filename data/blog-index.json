@@ -1,6 +1,22 @@
 {
-    "lastUpdated": "2026-05-14T10:09:48.297Z",
+    "lastUpdated": "2026-05-14T17:47:22.663Z",
     "blogs": [
+        {
+            "slug": "how-to-create-your-own-blog-site",
+            "title": "How to Create Your Own Blog Site Without It Sucking",
+            "date": "2026-05-16",
+            "description": "A practical, no-database approach to building your own MDX-powered blog with GitHub, Bun, and a CDN — automated with GitHub Actions.",
+            "tags": [
+                "blogging",
+                "nextjs",
+                "bun",
+                "github-actions",
+                "cloudinary"
+            ],
+            "published": true,
+            "related": [],
+            "coverImage": "/blog-images/how-to-create-your-own-blog-site/cover.webp"
+        },
         {
             "slug": "mastering-typescript-generics",
             "title": "Mastering TypeScript Generics: A Practical Guide",
@@ -13,7 +29,7 @@
                 "Programming"
             ],
             "coverImage": "/blog-images/mastering-typescript-generics/image3.jpg",
-            "published": true,
+            "published": false,
             "related": [
                 "getting-started-with-mdx"
             ]
@@ -34,22 +50,6 @@
                 "mastering-typescript-generics"
             ],
             "coverImage": "/blog-images/getting-started-with-mdx/cover.webp"
-        },
-        {
-            "slug": "how-to-create-your-own-blog-site",
-            "title": "How to Create Your Own Blog Site Without It Sucking",
-            "date": "2025-05-13",
-            "description": "A practical, no-database approach to building your own MDX-powered blog with GitHub, Bun, and a CDN — automated with GitHub Actions.",
-            "tags": [
-                "blogging",
-                "nextjs",
-                "bun",
-                "github-actions",
-                "cloudinary"
-            ],
-            "published": true,
-            "related": [],
-            "coverImage": "/blog-images/how-to-create-your-own-blog-site/cover.webp"
         }
     ]
 }

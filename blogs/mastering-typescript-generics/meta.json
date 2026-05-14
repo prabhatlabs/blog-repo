@@ -10,7 +10,7 @@
         "Programming"
     ],
     "coverImage": "/blog-images/mastering-typescript-generics/image3.jpg",
-    "published": true,
+    "published": false,
     "related": [
         "getting-started-with-mdx"
     ]

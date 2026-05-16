@@ -9,7 +9,7 @@
         "Web Development",
         "Markdown"
     ],
-    "published": true,
+    "published": false,
     "related": [
         "mastering-typescript-generics"
     ],
